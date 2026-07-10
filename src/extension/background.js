@@ -64,13 +64,13 @@ async function init_monitoring(session_id) {
     }
 }
 
-function stop_monitoring() {
-    try { state_handler.stop_listeners(); }         catch (e) { console.error(e); }
-    try { mouse_handler.stop_listeners(); }         catch (e) { console.error(e); }
-    try { keyboard_handler.stop_listeners(); }      catch (e) { console.error(e); }
-    try { google_handler.stop_listeners(); }        catch (e) { console.error(e); }
-    try { google_aimode_handler.stop_listeners(); } catch (e) { console.error(e); }
-    try { bing_handler.stop_listeners(); }          catch (e) { console.error(e); }
+async function stop_monitoring() {
+    try { await state_handler.stop_listeners(); }         catch (e) { console.error(e); }
+    try { await mouse_handler.stop_listeners(); }         catch (e) { console.error(e); }
+    try { await keyboard_handler.stop_listeners(); }      catch (e) { console.error(e); }
+    try { await google_handler.stop_listeners(); }        catch (e) { console.error(e); }
+    try { await google_aimode_handler.stop_listeners(); } catch (e) { console.error(e); }
+    try { await bing_handler.stop_listeners(); }          catch (e) { console.error(e); }
 }
 
 
@@ -141,7 +141,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 });
                 return true;
             } catch (error) {
-                console.log("error")
+                console.error("check_backend_health", error);
                 sendResponse({ ok: false });
             }
 
@@ -160,6 +160,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 });
                 return true;
             } catch (error) {
+                console.error("start_logs", error);
                 curr_session = null;
                 sendResponse({ ok: false, sessionId: null });
             }
@@ -182,12 +183,14 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                     headers: { "Content-Type": "application/json", },
                     body: JSON.stringify({ session_id: curr_session })
                 }).then(response => {
+                    console.log("end_logs: exiting");
                     curr_session = null;
                     stop_monitoring()
                     sendResponse({ ok: true, sessionId: null });
                 });
                 return true;
             } catch (error) {
+                console.error("end_logs", error);
                 sendResponse({ ok: false, sessionId: curr_session });
                 return;
             }

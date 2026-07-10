@@ -290,12 +290,12 @@ export class GoogleEventsHandler {
         this.log_google_ranking(curr_tab.id, true);
     } 
 
-    stop_listeners() {
+    async stop_listeners() {
         chrome.tabs.onUpdated.removeListener(this.on_tab_updated);
         chrome.tabs.onHighlighted.removeListener(this.on_tab_focus);
         for (const id of this.injected_tabs) {
             try {
-                this.stop_observer(id);
+                await this.stop_observer(id);
             } catch (e) {
                 console.warn(`Cannot stop Google observer of tab ${id}`);
             }

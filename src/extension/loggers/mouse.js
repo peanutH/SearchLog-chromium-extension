@@ -269,13 +269,13 @@ export class MouseEventsHandler {
         this.start_listeners_on_tab(curr_tab.id);
     } 
 
-    stop_listeners() {
+    async stop_listeners() {
         chrome.tabs.onHighlighted.removeListener(this.on_tab_focused)
         chrome.tabs.onUpdated.removeListener(this.on_tab_updated)
 
         for (const id of this.injected_tabs) {
             try {
-                this.stop_listeners_on_tab(id);
+                await this.stop_listeners_on_tab(id);
             } catch (e) {
                 console.warn(`Cannot stop mouse listeners of tab ${id}`);
             }

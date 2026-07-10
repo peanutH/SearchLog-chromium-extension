@@ -287,7 +287,7 @@ export class StateEventsHandler {
         chrome.tabs.onRemoved.addListener(this.tab_removed);
     } 
 
-    stop_listeners() {
+    async stop_listeners() {
         chrome.windows.onCreated.removeListener(this.window_created);
         chrome.windows.onFocusChanged.removeListener(this.window_focused);
         chrome.windows.onBoundsChanged.removeListener(this.window_resized);
@@ -300,7 +300,7 @@ export class StateEventsHandler {
 
         for (const id of this.injected_tabs) {
             try {
-                this.stop_observer(id);
+                await this.stop_observer(id);
             } catch (e) {
                 console.warn(`Cannot stop state observer of tab ${id}`);
             }
