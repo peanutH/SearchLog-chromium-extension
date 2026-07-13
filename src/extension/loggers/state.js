@@ -10,6 +10,7 @@
 
 import { BaseEvent } from './BaseEvent.js';
 import { BACKEND_BASE_URL } from "../constants.js"
+import { tab_exists } from "./utils.js"
 
 
 const StateEvent = Object.freeze({
@@ -234,12 +235,16 @@ export class StateEventsHandler {
             })();
         }
 
-        await chrome.scripting.executeScript({
-            target: { tabId: tab_id },
-            func: _snapshot,
-            args: [this.session_id, filename]
-        });
-        this.injected_tabs.push(tab_id);
+        try {
+            await chrome.scripting.executeScript({
+                target: { tabId: tab_id },
+                func: _snapshot,
+                args: [this.session_id, filename]
+            });
+            this.injected_tabs.push(tab_id);
+        } catch (e) {
+            console.warn(`Failed to execute script (state) ${e}`);
+        }
     }
 
     async stop_observer(tab_id) {
@@ -248,16 +253,20 @@ export class StateEventsHandler {
                 window.__searchlog_state_snapshot_observer.disconnect();
                 console.log("Closed state observer");
             } catch (e) {
-                console.error(`Cannot stop state observer ${e}`);
+                console.warn(`Cannot stop state observer ${e}`);
             }
             window.__searchlog_state_snapshot_observer = undefined;
         }
 
-        await chrome.scripting.executeScript({
-            target: { tabId: tab_id },
-            func: stop_injected_listeners,
-            args: []
-        });
+        try {
+            await chrome.scripting.executeScript({
+                target: { tabId: tab_id },
+                func: stop_injected_listeners,
+                args: []
+            });
+        } catch (e) {
+            console.warn(`Failed to execute script (state) ${e}`);
+        }
     }
 
     async start_listeners() {
@@ -299,6 +308,7 @@ export class StateEventsHandler {
         chrome.tabs.onRemoved.removeListener(this.tab_removed);
 
         for (const id of this.injected_tabs) {
+            if (!(await tab_exists(id))) { continue; }
             try {
                 await this.stop_observer(id);
             } catch (e) {

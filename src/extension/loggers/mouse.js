@@ -7,6 +7,7 @@
  * - Scrolling
  * 
  */
+import { tab_exists } from "./utils.js"
 
 export class MouseEventsHandler {
     constructor(session_id) {
@@ -226,12 +227,16 @@ export class MouseEventsHandler {
             document.addEventListener("scroll", window.__searchlog_listeners_mouse_page_scroll);
         }
 
-        await chrome.scripting.executeScript({
-            target: { tabId: tab_id },
-            func: inject_listeners,
-            args: [this.session_id]
-        });
-        this.injected_tabs.push(tab_id);
+        try {
+            await chrome.scripting.executeScript({
+                target: { tabId: tab_id },
+                func: inject_listeners,
+                args: [this.session_id]
+            });
+            this.injected_tabs.push(tab_id);
+        } catch (e) {
+            console.warn(`Failed to execute script (mouse) ${e}`);
+        }
     }
 
     async stop_listeners_on_tab(tab_id) {
@@ -246,11 +251,15 @@ export class MouseEventsHandler {
             document.removeEventListener("scroll", window.__searchlog_listeners_mouse_page_scroll);
         }
 
-        await chrome.scripting.executeScript({
-            target: { tabId: tab_id },
-            func: stop_injected_listeners,
-            args: []
-        });
+        try {
+            await chrome.scripting.executeScript({
+                target: { tabId: tab_id },
+                func: stop_injected_listeners,
+                args: []
+            });
+        } catch (e) {
+            console.warn(`Failed to execute script (mouse) ${e}`);
+        }
     }
 
     on_tab_focused(info) {
@@ -274,6 +283,7 @@ export class MouseEventsHandler {
         chrome.tabs.onUpdated.removeListener(this.on_tab_updated)
 
         for (const id of this.injected_tabs) {
+            if (!(await tab_exists(id))) { continue; }
             try {
                 await this.stop_listeners_on_tab(id);
             } catch (e) {

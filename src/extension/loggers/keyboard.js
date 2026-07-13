@@ -5,6 +5,7 @@
  * - Copy-paste
  * 
  */
+import { tab_exists } from "./utils.js"
 
 
 export class KeyboardEventsHandler {
@@ -175,12 +176,16 @@ export class KeyboardEventsHandler {
             document.addEventListener("paste", window.__searchlog_listeners_keyboard_paste_event);
         }
 
-        await chrome.scripting.executeScript({
-            target: { tabId: tab_id },
-            func: inject_listeners,
-            args: [this.session_id]
-        });
-        this.injected_tabs.push(tab_id);
+        try {
+            await chrome.scripting.executeScript({
+                target: { tabId: tab_id },
+                func: inject_listeners,
+                args: [this.session_id]
+            });
+            this.injected_tabs.push(tab_id);
+        } catch (e) {
+            console.warn(`Failed to execute script (keyboard) ${e}`);
+        }
     }
 
     async stop_listeners_on_tab(tab_id) {
@@ -193,11 +198,15 @@ export class KeyboardEventsHandler {
             document.removeEventListener("paste", window.__searchlog_listeners_keyboard_paste_event);
         }
 
-        await chrome.scripting.executeScript({
-            target: { tabId: tab_id },
-            func: stop_injected_listeners,
-            args: []
-        });
+        try {
+            await chrome.scripting.executeScript({
+                target: { tabId: tab_id },
+                func: stop_injected_listeners,
+                args: []
+            });
+        } catch (e) {
+            console.warn(`Failed to execute script (keyboard) ${e}`);
+        }
     }
 
     on_tab_focused(info) {
@@ -221,6 +230,7 @@ export class KeyboardEventsHandler {
         chrome.tabs.onUpdated.removeListener(this.on_tab_updated);
 
         for (const id of this.injected_tabs) {
+            if (!(await tab_exists(id))) { continue; }
             try {
                 await this.stop_listeners_on_tab(id);
             } catch (e) {

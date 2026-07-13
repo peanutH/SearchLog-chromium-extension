@@ -18,49 +18,53 @@ var bing_handler = null;
 
 
 async function init_monitoring(session_id) {
-    const curr_windows = await chrome.windows.getAll()
-    const curr_tabs = await chrome.tabs.query({})
-
     try {
-        state_handler = new StateEventsHandler(session_id, curr_windows, curr_tabs);
-        await state_handler.start_listeners();
-    } catch (e) {
-        console.error(`Failed to initialize state monitoring ${e}`);
-    }
+        const curr_windows = await chrome.windows.getAll()
+        const curr_tabs = await chrome.tabs.query({})
 
-    try {
-        mouse_handler = new MouseEventsHandler(session_id);
-        await mouse_handler.start_listeners();
-    } catch (e) {
-        console.error(`Failed to initialize mouse monitoring ${e}`);
-    }
+        try {
+            state_handler = new StateEventsHandler(session_id, curr_windows, curr_tabs);
+            await state_handler.start_listeners();
+        } catch (e) {
+            console.error(`Failed to initialize state monitoring ${e}`);
+        }
 
-    try {
-        keyboard_handler = new KeyboardEventsHandler(session_id);
-        await keyboard_handler.start_listeners();
-    } catch (e) {
-        console.error(`Failed to initialize keyboard monitoring ${e}`);
-    }
+        try {
+            mouse_handler = new MouseEventsHandler(session_id);
+            await mouse_handler.start_listeners();
+        } catch (e) {
+            console.error(`Failed to initialize mouse monitoring ${e}`);
+        }
 
-    try {
-        google_handler = new GoogleEventsHandler(session_id);
-        await google_handler.start_listeners();
-    } catch (e) {
-        console.error(`Failed to initialize Google monitoring ${e}`);
-    }
+        try {
+            keyboard_handler = new KeyboardEventsHandler(session_id);
+            await keyboard_handler.start_listeners();
+        } catch (e) {
+            console.error(`Failed to initialize keyboard monitoring ${e}`);
+        }
 
-    try {
-        google_aimode_handler = new GoogleAIModeEventsHandler(session_id);
-        await google_aimode_handler.start_listeners();
-    } catch (e) {
-        console.error(`Failed to initialize Google (AI Mode) monitoring ${e}`);
-    }
+        try {
+            google_handler = new GoogleEventsHandler(session_id);
+            await google_handler.start_listeners();
+        } catch (e) {
+            console.error(`Failed to initialize Google monitoring ${e}`);
+        }
 
-    try {
-        bing_handler = new BingEventsHandler(session_id);
-        await bing_handler.start_listeners();
+        try {
+            google_aimode_handler = new GoogleAIModeEventsHandler(session_id);
+            await google_aimode_handler.start_listeners();
+        } catch (e) {
+            console.error(`Failed to initialize Google (AI Mode) monitoring ${e}`);
+        }
+
+        try {
+            bing_handler = new BingEventsHandler(session_id);
+            await bing_handler.start_listeners();
+        } catch (e) {
+            console.error(`Failed to initialize Bing monitoring ${e}`);
+        }
     } catch (e) {
-        console.error(`Failed to initialize Bing monitoring ${e}`);
+        console.error(`Failed to initialize monitoring`);
     }
 }
 

@@ -3,6 +3,7 @@
  * Module handling ranking on Google AI mode tab
  * 
  */
+import { tab_exists } from "../utils.js"
 
 
 export class GoogleAIModeEventsHandler {
@@ -170,12 +171,16 @@ export class GoogleAIModeEventsHandler {
             })();
         }
 
-        await chrome.scripting.executeScript({
-            target: { tabId: tab_id },
-            func: log_conversation,
-            args: [this.session_id, save_immediately]
-        });
-        this.injected_tabs.push(tab_id);
+        try {
+            await chrome.scripting.executeScript({
+                target: { tabId: tab_id },
+                func: log_conversation,
+                args: [this.session_id, save_immediately]
+            });
+            this.injected_tabs.push(tab_id);
+        } catch (e) {
+            console.warn(`Failed to execute script (Google AI Mode) ${e}`);
+        }
     }
 
     async stop_observer(tab_id) {
@@ -184,17 +189,21 @@ export class GoogleAIModeEventsHandler {
                 window.__searchlog_observer_google_aimode.disconnect();
                 console.log("Closed Google AI Mode observer");
             } catch (e) {
-                console.error(`Cannot stop Google AI Mode observer ${e}`);
+                console.warn(`Cannot stop Google AI Mode observer ${e}`);
             }
             window.__searchlog_export_timestamp_file = undefined;
             window.__searchlog_observer_google_aimode = undefined;
         }
 
-        await chrome.scripting.executeScript({
-            target: { tabId: tab_id },
-            func: stop_injected_listeners,
-            args: []
-        });
+        try {
+            await chrome.scripting.executeScript({
+                target: { tabId: tab_id },
+                func: stop_injected_listeners,
+                args: []
+            });
+        } catch (e) {
+            console.warn(`Failed to execute script (Google AI Mode) ${e}`);
+        }
     }
 
     on_tab_updated(tab_id, changed_info, tab) {
@@ -219,6 +228,7 @@ export class GoogleAIModeEventsHandler {
         chrome.tabs.onUpdated.removeListener(this.on_tab_updated);
         chrome.tabs.onHighlighted.removeListener(this.on_tab_focus);
         for (const id of this.injected_tabs) {
+            if (!(await tab_exists(id))) { continue; }
             try {
                 await this.stop_observer(id);
             } catch (e) {
