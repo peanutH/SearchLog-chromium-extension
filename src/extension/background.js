@@ -102,7 +102,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 method: "POST", 
                 headers: { "Content-Type": "application/json", },
                 body: message.log
-            })
+            });
             return;
 
         case "submit-raw":
@@ -110,7 +110,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 method: "POST", 
                 headers: { "Content-Type": "application/json", },
                 body: message.log
-            })
+            });
             return;
 
         case "submit-html":
@@ -118,7 +118,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 method: "POST", 
                 headers: { "Content-Type": "application/json", },
                 body: message.data
-            })
+            });
             return;
 
         case "submit-llm":
@@ -126,7 +126,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 method: "POST", 
                 headers: { "Content-Type": "application/json", },
                 body: message.data
-            })
+            });
             return;
 
         case "submit-ranking":
@@ -134,15 +134,15 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 method: "POST", 
                 headers: { "Content-Type": "application/json", },
                 body: message.data
-            })
+            });
             return;
 
 
         case "check_backend_health":
             try {
-                backendRequest("/peanut", { method: "GET" }).then(response => {
-                    sendResponse({ ok: true });
-                });
+                backendRequest("/peanut", { method: "GET" })
+                    .then(response => { sendResponse({ ok: true }); })
+                    .catch(e => { sendResponse({ ok: false }); });
                 return true;
             } catch (error) {
                 console.error("check_backend_health", error);
@@ -157,11 +157,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             }
             
             try {
-                backendRequest("/start", { method: "POST" }).then(async response => {
-                    curr_session = response.session_id;
-                    await init_monitoring(curr_session);
-                    sendResponse({ ok: true, sessionId: curr_session });
-                });
+                backendRequest("/start", { method: "POST" })
+                    .then(async response => {
+                        curr_session = response.session_id;
+                        await init_monitoring(curr_session);
+                        sendResponse({ ok: true, sessionId: curr_session });
+                    })
+                    .catch(e => { sendResponse({ ok: false }); });
                 return true;
             } catch (error) {
                 console.error("start_logs", error);
@@ -186,12 +188,14 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                     method: "POST", 
                     headers: { "Content-Type": "application/json", },
                     body: JSON.stringify({ session_id: curr_session })
-                }).then(response => {
-                    console.log("end_logs: exiting");
-                    curr_session = null;
-                    stop_monitoring()
-                    sendResponse({ ok: true, sessionId: null });
-                });
+                })
+                    .then(response => {
+                        console.log("end_logs: exiting");
+                        curr_session = null;
+                        stop_monitoring()
+                        sendResponse({ ok: true, sessionId: null });
+                    })
+                    .catch(e => { sendResponse({ ok: false }); });
                 return true;
             } catch (error) {
                 console.error("end_logs", error);
