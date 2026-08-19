@@ -7,7 +7,7 @@ export async function dry_run () {
         // Create tabs
         const tab1 = await chrome.tabs.create({ url: "https://google.com", active: true });
         await sleep(1000);
-        const tab2 = await chrome.tabs.create({ url: "https://bing.com", active: true });
+        const tab2 = await chrome.tabs.create({ url: "https://www.bing.com", active: true });
         await sleep(1000);
         await chrome.tabs.remove(tab2.id);
         await sleep(500);
